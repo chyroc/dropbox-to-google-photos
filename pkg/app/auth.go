@@ -8,36 +8,6 @@ import (
 	"github.com/chyroc/dropbox-to-google-photos/pkg/oauth"
 )
 
-func (r *App) Auth() error {
-	ctx := context.Background()
-	cfg := &oauth.Config{
-		ClientID:     r.config.GooglePhotos.ClientID,
-		ClientSecret: r.config.GooglePhotos.ClientSecret,
-		Logf:         r.logger.Infof,
-	}
-	token, err := oauth.GetToken(ctx, cfg)
-	if err == nil {
-		r.logger.Donef("Successful authentication for account '%s'", r.config.Account)
-	}
-
-	err = r.tokenManager.Put(r.config.Account, token)
-	if err != nil {
-		r.logger.Warnf("Failed to save token for account '%s': %s", r.config.Account, err)
-	}
-
-	googlePhotoHttpClient, err := oauth.Client(context.Background(), cfg, token)
-	if err != nil {
-		return err
-	}
-	r.googlePhotoHttpClient = googlePhotoHttpClient
-	r.googlePhotoClient, err = googlephotoclient.New(r.googlePhotoHttpClient)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (r *App) TryAuth() error {
 	account := r.config.Account
 	r.logger.Infof("Authenticating using token for '%s'", account)

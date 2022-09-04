@@ -10,6 +10,17 @@ import (
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
 )
 
+type sync struct {
+	dropboxFiles      files.Client
+	googlePhotoClient *googlephotoclient.Client
+	fileTracker       *filetracker.FileTracker
+	logger            iface.Logger
+
+	Files   chan iface.FileItem
+	Cursor  string
+	HasMore bool
+}
+
 func (r *App) Sync() error {
 	r.logger.Infof("start sync, path: '%s'", r.config.Dropbox.RootDir)
 
@@ -33,13 +44,6 @@ func (r *App) Sync() error {
 		})
 		if err != nil {
 			return fmt.Errorf("dropbox list folder fail: %w", err)
-		}
-		syncer := &sync{
-			dropboxFiles:      r.dropboxFiles,
-			googlePhotoClient: r.googlePhotoClient,
-			fileTracker:       r.fileTracker,
-			logger:            r.logger,
-			Files:             make(chan iface.FileItem, 100),
 		}
 		syncer.updateCursor(res.Cursor, res.HasMore)
 		entities = res.Entries
@@ -97,19 +101,4 @@ func (r *App) Sync() error {
 		}
 	}
 	return nil
-}
-
-type Syncer interface {
-	Run() error
-}
-
-type sync struct {
-	dropboxFiles      files.Client
-	googlePhotoClient *googlephotoclient.Client
-	fileTracker       *filetracker.FileTracker
-	logger            iface.Logger
-
-	Files   chan iface.FileItem
-	Cursor  string
-	HasMore bool
 }
