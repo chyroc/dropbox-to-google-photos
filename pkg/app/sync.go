@@ -75,12 +75,15 @@ func (r *App) Sync() error {
 						if !ok {
 							return
 						}
-						result := syncer.uploadFile(item)
-						if result == UploadResultWait {
+						switch syncer.uploadFile(item) {
+						case UploadResultReturn:
+							r.logger.Infof("[dropbox] limit per day, return and stop")
+							return
+						case UploadResultWait:
 							r.logger.Infof("[google] upload file quote, sleep")
 							time.Sleep(time.Second * 10)
-						}
-						if result == UploadResultWait || result == UploadResultRetry {
+							go func() { syncer.Files <- item }()
+						case UploadResultRetry:
 							go func() { syncer.Files <- item }()
 						}
 					}

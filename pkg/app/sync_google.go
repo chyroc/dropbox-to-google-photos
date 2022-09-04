@@ -6,13 +6,6 @@ import (
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 )
 
-type UploadResult string
-
-const (
-	UploadResultWait  = UploadResult("wait")
-	UploadResultRetry = UploadResult("retry")
-)
-
 func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 	contentHash := item.(*dropboxFileItem).hash
 	// check if file is already uploaded
@@ -25,7 +18,7 @@ func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 	media, err := r.googlePhotoClient.UploadFileToLibrary(context.Background(), item)
 	if err != nil {
 		result := wrapGoogleError(err)
-		if result == UploadResultWait {
+		if result == UploadResultWait || result == UploadResultReturn {
 			return result
 		}
 		r.logger.Errorf("[google] upload fail: '%s': %s", item.Name(), err)

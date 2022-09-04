@@ -10,8 +10,10 @@ import (
 // Logdir specifies the relative path to logs
 var Logdir = "/tmp/dropbox-to-google-photos/logs/"
 
-var logs = map[string]*fileLogger{}
-var logsMutext sync.Mutex
+var (
+	logs       = map[string]*fileLogger{}
+	logsMutext sync.Mutex
+)
 
 type fileLogger struct {
 	logger *logrus.Logger

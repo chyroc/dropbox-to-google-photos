@@ -67,11 +67,11 @@ func (r *App) InitConfig(force bool) error {
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(r.workDir, 0755)
+	err = os.MkdirAll(r.workDir, 0o755)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(r.configPath(), bs, 0644)
+	return ioutil.WriteFile(r.configPath(), bs, 0o644)
 }
 
 func (r *App) configPath() string {

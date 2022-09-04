@@ -14,7 +14,7 @@ type FileRepository struct {
 }
 
 func NewFileRepository(dir string) (*FileRepository, error) {
-	err := os.MkdirAll(dir+"/tokens", 0700)
+	err := os.MkdirAll(dir+"/tokens", 0o700)
 	if err != nil {
 		return nil, err
 	}
@@ -28,12 +28,12 @@ func (r *FileRepository) Set(email string, token *oauth2.Token) error {
 		return ErrInvalidToken
 	}
 
-	return ioutil.WriteFile(r.dir+"/"+wrapEmail(email), tokenJSONBytes, 0644)
+	return ioutil.WriteFile(r.dir+"/"+wrapEmail(email), tokenJSONBytes, 0o644)
 }
 
 // getToken returns the specified token from the repository.
 func (r *FileRepository) Get(email string) (*oauth2.Token, error) {
-	var nullToken = &oauth2.Token{}
+	nullToken := &oauth2.Token{}
 
 	bs, err := ioutil.ReadFile(r.dir + "/" + wrapEmail(email))
 	if err != nil {
