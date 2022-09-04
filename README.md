@@ -1,4 +1,5 @@
 # dropbox-to-google-photos
+
 save dropbox pictures and videos to google photos
 
 ## Installation
@@ -11,9 +12,12 @@ go install github.com/chyroc/dropbox-to-google-photos@latest
 
 ## Google Photos OAuth Config
 
-- click [google cloud create project](https://console.cloud.google.com/projectcreate) to create google photos oauth project
-- click [photoslibrary.googleapis](https://console.cloud.google.com/apis/library/photoslibrary.googleapis.com) to enable google photos api
-- click [google oauth app](https://console.cloud.google.com/apis/credentials/consent/edit;newAppInternalUser=false) to create google oauth app
+- click [google cloud create project](https://console.cloud.google.com/projectcreate) to create google photos oauth
+  project
+- click [photoslibrary.googleapis](https://console.cloud.google.com/apis/library/photoslibrary.googleapis.com) to enable
+  google photos api
+- click [google oauth app](https://console.cloud.google.com/apis/credentials/consent/edit;newAppInternalUser=false) to
+  create google oauth app
 
 Then you can get a google ooauth app id and secret.
 
@@ -34,7 +38,7 @@ open config file and fill in the blanks
     "client_id": "client id",
     "client_secret": "client secret"
   },
-  "dropbox":{
+  "dropbox": {
     "token": "dropbox token",
     "root_dir": "/"
   },
@@ -54,6 +58,10 @@ open config file and fill in the blanks
 ```bash
 dropbox-to-google-photos auth
 ```
+
+|                               |                               |                               |
+|-------------------------------|-------------------------------|-------------------------------|
+| ![](./screenshots/1.auth.png) | ![](./screenshots/2.auth.png) | ![](./screenshots/3.auth.png) | 
 
 ### Sync dropbox to google photos
 
