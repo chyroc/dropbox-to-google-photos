@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/chyroc/dropbox-to-google-photos/pkg/filetracker"
@@ -66,9 +67,13 @@ func (r *App) Sync() error {
 		}
 	}()
 
+	worker := int32(r.config.Worker)
 	go func() {
 		for i := 0; i < r.config.Worker; i++ {
 			go func() {
+				defer func() {
+					atomic.AddInt32(&worker, -1)
+				}()
 				for {
 					select {
 					case item, ok := <-syncer.Files:
@@ -95,6 +100,10 @@ func (r *App) Sync() error {
 	x := time.NewTicker(time.Second)
 	time.Sleep(time.Second * 5)
 	for {
+		if atomic.LoadInt32(&worker) == 0 {
+			r.logger.Infof("sync done")
+			break
+		}
 		select {
 		case <-x.C:
 			if !syncer.HasMore {
