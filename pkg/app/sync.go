@@ -23,7 +23,7 @@ type sync struct {
 }
 
 func (r *App) Sync() error {
-	r.logger.Infof("start sync, path: '%s'", r.config.Dropbox.RootDir)
+	r.logger.Infof("[sync] start sync, path: '%s'", r.config.Dropbox.RootDir)
 
 	syncer := &sync{
 		dropboxFiles:      r.dropboxFiles,
@@ -36,7 +36,7 @@ func (r *App) Sync() error {
 
 	if cursor := syncer.getCursor(); len(cursor) > 0 {
 		syncer.updateCursor(cursor, true)
-		r.logger.Infof("[dropbox] load cursor: '%s'", cursor)
+		r.logger.Infof("[sync] load cursor: '%s'", cursor)
 	} else {
 		res, err := r.dropboxFiles.ListFolder(&files.ListFolderArg{
 			Path:      r.config.Dropbox.RootDir,
@@ -54,20 +54,21 @@ func (r *App) Sync() error {
 	go func() {
 		for _, v := range entities {
 			if fi := syncer.dropboxMetadataToFileItem(v); fi != nil {
-				r.logger.Debugf("[dropbox] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
+				r.logger.Debugf("[sync] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
 				syncer.Files <- fi
 			}
 		}
 		for syncer.HasMore {
 			err := syncer.loadDropboxImages()
 			if err != nil {
-				r.logger.Errorf("[dropbox] load images fail: %s", err)
+				r.logger.Errorf("[sync] load images fail: %s", err)
 				time.Sleep(time.Second * 3)
 			}
 		}
 	}()
 
 	worker := int32(r.config.Worker)
+	reactLimit := int32(0)
 	go func() {
 		for i := 0; i < r.config.Worker; i++ {
 			go func() {
@@ -81,11 +82,12 @@ func (r *App) Sync() error {
 							return
 						}
 						switch syncer.uploadFile(item) {
-						case UploadResultReturn:
-							r.logger.Infof("[dropbox] limit per day, return and stop")
+						case UploadResultReactDayLimit:
+							atomic.AddInt32(&reactLimit, 1)
+							r.logger.Infof("[sync] limit per day, return and stop")
 							return
 						case UploadResultWait:
-							r.logger.Infof("[google] upload file quote, sleep")
+							r.logger.Infof("[sync] upload file quote, sleep")
 							time.Sleep(time.Second * 10)
 							go func() { syncer.Files <- item }()
 						case UploadResultRetry:
@@ -101,13 +103,21 @@ func (r *App) Sync() error {
 	time.Sleep(time.Second * 5)
 	for {
 		if atomic.LoadInt32(&worker) == 0 {
-			r.logger.Infof("sync done")
+			if atomic.LoadInt32(&reactLimit) > 0 {
+				r.logger.Infof("[sync] react limit, stop")
+			} else {
+				r.logger.Infof("[sync] done")
+			}
 			break
 		}
 		select {
 		case <-x.C:
 			if !syncer.HasMore {
-				r.logger.Infof("sync done")
+				if atomic.LoadInt32(&reactLimit) > 0 {
+					r.logger.Infof("[sync] react limit, stop")
+				} else {
+					r.logger.Infof("[sync] done")
+				}
 				return nil
 			}
 		}

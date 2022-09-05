@@ -8,14 +8,15 @@ import (
 )
 
 func (r *sync) uploadFile(item iface.FileItem) UploadResult {
-	r.logger.Infof("[sync] upload file: '%s', size: %s", item.Name(), humanSize(item.Size()))
 	var err error
 
 	// check if file is already uploaded
 	if r.checkFileExist(item) {
-		r.logger.Infof("[google] file exist: '%s', skip", item.Name())
+		r.logger.Infof("[sync] file exist: '%s', skip", item.Name())
 		return ""
 	}
+
+	r.logger.Infof("[sync] uploading file: '%s', size: %s", item.Name(), humanSize(item.Size()))
 
 	// check if upload token exist
 	uploadToken := r.getUploadToken(item)
@@ -23,7 +24,7 @@ func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 		uploadToken, err = r.googlePhotoClient.UploadFile(context.Background(), item)
 		if err != nil {
 			result := wrapGoogleError(err)
-			if result == UploadResultWait || result == UploadResultReturn {
+			if result == UploadResultWait || result == UploadResultReactDayLimit {
 				return result
 			}
 			r.logger.Errorf("[sync] upload token fail: '%s': %s", item.Name(), err)
@@ -35,7 +36,7 @@ func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 	media, err := r.googlePhotoClient.UploadFileToLibrary(context.Background(), uploadToken)
 	if err != nil {
 		result := wrapGoogleError(err)
-		if result == UploadResultWait || result == UploadResultReturn {
+		if result == UploadResultWait || result == UploadResultReactDayLimit {
 			return result
 		}
 		r.logger.Errorf("[sync] add library fail: '%s': %s", item.Name(), err)
@@ -44,7 +45,11 @@ func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 
 	r.setFileExist(item)
 
-	r.logger.Infof("[sync] upload success: '%s': id: '%s', name: '%s'", item.Name(), media.ID, media.Filename)
+	if item.Name() != media.Filename {
+		r.logger.Infof("[sync] upload success: '%s', name: '%s'", item.Name(), media.Filename)
+	} else {
+		r.logger.Infof("[sync] upload success: '%s'", item.Name())
+	}
 
 	return ""
 }

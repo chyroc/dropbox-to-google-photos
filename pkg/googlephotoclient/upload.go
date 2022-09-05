@@ -15,17 +15,19 @@ func (u *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, e
 		return "", err
 	}
 
-	u.log.Debugf("[google] Uploading %s (%s)", fileItem.Name(), humanSize(fileItem.Size()))
+	filekey := fmt.Sprintf("%s (%s)", fileItem.Name(), humanSize(fileItem.Size()))
+
+	u.log.Debugf("[google] uploading %s, start", filekey)
 	res, err := u.client.Do(req)
 	if err != nil {
-		u.log.Errorf("[google] Error while uploading %s: %s", fileItem, err)
+		u.log.Errorf("[google] uploading %s, do request fail: %s", filekey, err)
 		return "", err
 	}
 	defer res.Body.Close()
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		u.log.Errorf("[google] Error while uploading %s: %s: could not read body: %s", fileItem, res.Status, err)
+		u.log.Errorf("[google] uploading %s, read body fail: %s(%s)", filekey, err, res.Status)
 		return "", err
 	}
 	body := string(b)
@@ -33,7 +35,7 @@ func (u *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, e
 	if res.StatusCode == http.StatusOK {
 		return string(body), nil
 	}
-	return "", fmt.Errorf("[google] got %s: %s", res.Status, body)
+	return "", fmt.Errorf("[google] uploading %s, fail, got %s: %s", filekey, res.Status, body)
 }
 
 func (u *Client) prepareUploadRequest(fileItem iface.FileItem) (*http.Request, error) {

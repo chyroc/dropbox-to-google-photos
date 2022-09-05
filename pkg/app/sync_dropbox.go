@@ -15,12 +15,12 @@ func (r *sync) loadDropboxImages() error {
 		Cursor: r.Cursor,
 	})
 	if err != nil {
-		return fmt.Errorf("[dropbox] list folder continue fail: %w", err)
+		return fmt.Errorf("[sync] list folder continue fail: %w", err)
 	}
 
 	for _, v := range res.Entries {
 		if fi := r.dropboxMetadataToFileItem(v); fi != nil {
-			r.logger.Debugf("[dropbox] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
+			r.logger.Debugf("[sync] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
 			r.Files <- fi
 		}
 	}

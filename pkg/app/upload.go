@@ -22,10 +22,10 @@ func (r *App) UploadPath(path string) error {
 	}
 	res, err := r.googlePhotoClient.UploadFileToLibrary(context.Background(), uploadToken)
 	if err != nil {
-		r.logger.Errorf("[google] upload fail: '%s': %s", fs.Name(), err)
+		r.logger.Errorf("[sync] upload fail: '%s': %s", fs.Name(), err)
 		return err
 	} else {
-		r.logger.Infof("[google] upload success, id: '%s', name: '%s'", res.ID, res.Filename)
+		r.logger.Infof("[sync] upload success, id: '%s', name: '%s'", res.ID, res.Filename)
 	}
 	_ = res
 	return nil

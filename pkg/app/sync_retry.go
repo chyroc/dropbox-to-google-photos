@@ -7,9 +7,9 @@ import (
 type UploadResult string
 
 const (
-	UploadResultWait   = UploadResult("wait")
-	UploadResultRetry  = UploadResult("retry")
-	UploadResultReturn = UploadResult("return")
+	UploadResultWait          = UploadResult("wait")
+	UploadResultRetry         = UploadResult("retry")
+	UploadResultReactDayLimit = UploadResult("react_day_limit")
 )
 
 func wrapGoogleError(err error) UploadResult {
@@ -22,7 +22,7 @@ func wrapGoogleError(err error) UploadResult {
 			return UploadResultWait
 		}
 		if strings.Contains(e, "limit 'All requests per day'") {
-			return UploadResultReturn
+			return UploadResultReactDayLimit
 		}
 	}
 
