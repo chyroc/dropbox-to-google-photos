@@ -127,6 +127,7 @@ func isShouldSync(file string) bool {
 		".war":   true,
 		".ear":   true,
 		".psd":   true,
+		".lnk":   true,
 	}
 	return !notImageAndVideoExtensions[strings.ToLower(filepath.Ext(file))]
 }

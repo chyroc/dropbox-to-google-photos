@@ -22,7 +22,7 @@ type sync struct {
 	HasMore bool
 }
 
-func (r *App) Sync() error {
+func (r *App) Sync(ignoreCursor bool) error {
 	r.logger.Infof("[sync] start sync, path: '%s'", r.config.Dropbox.RootDir)
 
 	syncer := &sync{
@@ -34,7 +34,8 @@ func (r *App) Sync() error {
 	}
 	var entities []files.IsMetadata
 
-	if cursor := syncer.getCursor(); len(cursor) > 0 {
+	cursor := syncer.getCursor()
+	if !ignoreCursor && len(cursor) > 0 {
 		syncer.updateCursor(cursor, true)
 		r.logger.Infof("[sync] load cursor: '%s'", cursor)
 	} else {

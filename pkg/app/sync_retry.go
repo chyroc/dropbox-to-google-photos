@@ -10,6 +10,7 @@ const (
 	UploadResultWait          = UploadResult("wait")
 	UploadResultRetry         = UploadResult("retry")
 	UploadResultReactDayLimit = UploadResult("react_day_limit")
+	UpdateResultSkip          = UploadResult("skip")
 )
 
 func wrapGoogleError(err error) UploadResult {
@@ -24,6 +25,13 @@ func wrapGoogleError(err error) UploadResult {
 		if strings.Contains(e, "limit 'All requests per day'") {
 			return UploadResultReactDayLimit
 		}
+	}
+
+	if strings.Contains(e, "Failed: There was an error while trying to create this media item.") {
+		return UpdateResultSkip
+	}
+	if strings.Contains(e, "Payload must not be empty") {
+		return UpdateResultSkip
 	}
 
 	return ""

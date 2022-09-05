@@ -2,6 +2,7 @@ package googlephotoclient
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -34,6 +35,13 @@ func (u *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, e
 
 	if res.StatusCode == http.StatusOK {
 		return string(body), nil
+	}
+	codeResp := new(codeResp)
+	_ = json.Unmarshal(b, codeResp)
+	if codeResp.Code != 0 {
+		err = fmt.Errorf("[google] uploading %s, %d %s", filekey, codeResp.Code, codeResp.Message)
+		u.log.Errorf(err.Error())
+		return "", err
 	}
 	return "", fmt.Errorf("[google] uploading %s, fail, got %s: %s", filekey, res.Status, body)
 }
@@ -68,4 +76,9 @@ func humanSize(size int64) string {
 	} else {
 		return fmt.Sprintf("%.2f GB", float64(size)/1024/1024/1024)
 	}
+}
+
+type codeResp struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }

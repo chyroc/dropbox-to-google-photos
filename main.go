@@ -47,6 +47,7 @@ func main() {
 				Usage: "sync dropbox to google photos",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "config", Usage: "config file path"},
+					&cli.BoolFlag{Name: "ignore-cursor", Usage: "ignore cursor"},
 				},
 				Action: func(c *cli.Context) error {
 					ins := app.NewApp(c.String("config"), logrus.InfoLevel)
@@ -59,7 +60,7 @@ func main() {
 						return err
 					}
 
-					return ins.Sync()
+					return ins.Sync(c.Bool("ignore-cursor"))
 				},
 			},
 		},
