@@ -75,5 +75,5 @@ func (r *App) InitConfig(force bool) error {
 }
 
 func (r *App) configPath() string {
-	return r.workDir + "/config.json"
+	return r.workDir + "/" + r.configName
 }

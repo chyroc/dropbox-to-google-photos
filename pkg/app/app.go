@@ -14,9 +14,10 @@ import (
 )
 
 type App struct {
-	workDir string
-	config  *Config
-	logger  iface.Logger
+	workDir    string
+	config     *Config
+	logger     iface.Logger
+	configName string
 
 	tokenManager          *tokenmanager.TokenManager
 	googlePhotoHttpClient *http.Client
@@ -26,7 +27,10 @@ type App struct {
 	fileTracker           *filetracker.FileTracker
 }
 
-func NewApp() *App {
+func NewApp(configName string) *App {
+	if configName == "" {
+		configName = "config.json"
+	}
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.NewStdout().Fatal(err)
@@ -34,8 +38,8 @@ func NewApp() *App {
 	}
 	workDir := home + "/.dropbox-to-google-photos"
 	return &App{
-		workDir: workDir,
-		// config:  config,
-		logger: log.NewStdout(),
+		workDir:    workDir,
+		logger:     log.NewStdout(),
+		configName: configName,
 	}
 }

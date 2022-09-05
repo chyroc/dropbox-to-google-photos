@@ -21,15 +21,18 @@ func main() {
 					&cli.BoolFlag{Name: "force", Usage: "force init config"},
 				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp()
+					ins := app.NewApp("")
 					return ins.InitConfig(c.Bool("force"))
 				},
 			},
 			{
 				Name:  "auth",
 				Usage: "auth to google photos",
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "config", Usage: "config file path"},
+				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp()
+					ins := app.NewApp(c.String("config"))
 					if err := ins.Start(); err != nil {
 						return err
 					}
@@ -41,8 +44,11 @@ func main() {
 			{
 				Name:  "sync",
 				Usage: "sync dropbox to google photos",
+				Flags: []cli.Flag{
+					&cli.StringFlag{Name: "config", Usage: "config file path"},
+				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp()
+					ins := app.NewApp(c.String("config"))
 					if err := ins.Start(); err != nil {
 						return err
 					}
