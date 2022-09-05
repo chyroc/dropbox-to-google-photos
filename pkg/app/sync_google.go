@@ -2,34 +2,85 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 )
 
 func (r *sync) uploadFile(item iface.FileItem) UploadResult {
-	r.logger.Infof("[sync] upload file: '%s'", item.Name())
+	r.logger.Infof("[sync] upload file: '%s', size: %s", item.Name(), humanSize(item.Size()))
+	var err error
 
-	contentHash := item.(*dropboxFileItem).hash
 	// check if file is already uploaded
-	value := r.fileTracker.Get("dropbox.hash:" + contentHash)
-	if len(value) > 0 {
+	if r.checkFileExist(item) {
 		r.logger.Infof("[google] file exist: '%s', skip", item.Name())
 		return ""
 	}
 
-	media, err := r.googlePhotoClient.UploadFileToLibrary(context.Background(), item)
+	// check if upload token exist
+	uploadToken := r.getUploadToken(item)
+	if uploadToken == "" {
+		uploadToken, err = r.googlePhotoClient.UploadFile(context.Background(), item)
+		if err != nil {
+			result := wrapGoogleError(err)
+			if result == UploadResultWait || result == UploadResultReturn {
+				return result
+			}
+			r.logger.Errorf("[sync] upload token fail: '%s': %s", item.Name(), err)
+			return result
+		}
+		r.setUploadToken(item, uploadToken)
+	}
+
+	media, err := r.googlePhotoClient.UploadFileToLibrary(context.Background(), uploadToken)
 	if err != nil {
 		result := wrapGoogleError(err)
 		if result == UploadResultWait || result == UploadResultReturn {
 			return result
 		}
-		r.logger.Errorf("[sync] upload fail: '%s': %s", item.Name(), err)
+		r.logger.Errorf("[sync] add library fail: '%s': %s", item.Name(), err)
 		return result
 	}
 
-	r.fileTracker.Set("dropbox.hash:"+contentHash, contentHash)
+	r.setFileExist(item)
 
 	r.logger.Infof("[sync] upload success: '%s': id: '%s', name: '%s'", item.Name(), media.ID, media.Filename)
 
 	return ""
+}
+
+func (r *sync) itemToExistKey(item iface.FileItem) string {
+	return "dropbox.hash:" + item.(*dropboxFileItem).hash
+}
+
+func (r *sync) itemToUploadTokenKey(item iface.FileItem) string {
+	return "dropbox-to-google.upload_token:" + item.(*dropboxFileItem).hash
+}
+
+func (r *sync) checkFileExist(item iface.FileItem) bool {
+	return len(r.fileTracker.Get(r.itemToExistKey(item))) > 0
+}
+
+func (r *sync) setFileExist(item iface.FileItem) {
+	r.fileTracker.Set(r.itemToExistKey(item), item.(*dropboxFileItem).hash)
+}
+
+func (r *sync) getUploadToken(item iface.FileItem) string {
+	return r.fileTracker.Get(r.itemToUploadTokenKey(item))
+}
+
+func (r *sync) setUploadToken(item iface.FileItem, uploadToken string) {
+	r.fileTracker.Set(r.itemToUploadTokenKey(item), uploadToken)
+}
+
+func humanSize(size int64) string {
+	if size < 1024 {
+		return fmt.Sprintf("%d B", size)
+	} else if size < 1024*1024 {
+		return fmt.Sprintf("%.2f kB", float64(size)/1024)
+	} else if size < 1024*1024*1024 {
+		return fmt.Sprintf("%.2f MB", float64(size)/1024/1024)
+	} else {
+		return fmt.Sprintf("%.2f GB", float64(size)/1024/1024/1024)
+	}
 }

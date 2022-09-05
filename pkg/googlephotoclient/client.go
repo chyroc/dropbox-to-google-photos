@@ -26,12 +26,12 @@ func New(client *http.Client, logger iface.Logger) (*Client, error) {
 }
 
 // UploadFileToLibrary uploads the specified file to Google Photos.
-func (c Client) UploadFileToLibrary(ctx context.Context, fileInfo iface.FileItem) (MediaItem, error) {
-	token, err := c.upload(ctx, fileInfo)
-	if err != nil {
-		return MediaItem{}, err
-	}
+func (c Client) UploadFile(ctx context.Context, fileInfo iface.FileItem) (string, error) {
+	return c.upload(ctx, fileInfo)
+}
 
+// UploadFileToLibrary uploads the specified file to Google Photos.
+func (c Client) UploadFileToLibrary(ctx context.Context, token string) (MediaItem, error) {
 	result, err := c.media.CreateMany(ctx, []string{token})
 	if err != nil {
 		return MediaItem{}, err
