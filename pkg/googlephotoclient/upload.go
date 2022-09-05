@@ -15,17 +15,17 @@ func (u *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, e
 		return "", err
 	}
 
-	u.log.Debugf("[google] Uploading %s (%d kB)", fileItem.Name(), fileItem.Size()/1024)
+	u.log.Debugf("[google] Uploading %s (%s)", fileItem.Name(), humanSize(fileItem.Size()))
 	res, err := u.client.Do(req)
 	if err != nil {
-		u.log.Errorf("Error while uploading %s: %s", fileItem, err)
+		u.log.Errorf("[google] Error while uploading %s: %s", fileItem, err)
 		return "", err
 	}
 	defer res.Body.Close()
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		u.log.Errorf("Error while uploading %s: %s: could not read body: %s", fileItem, res.Status, err)
+		u.log.Errorf("[google] Error while uploading %s: %s: could not read body: %s", fileItem, res.Status, err)
 		return "", err
 	}
 	body := string(b)
@@ -33,10 +33,9 @@ func (u *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, e
 	if res.StatusCode == http.StatusOK {
 		return string(body), nil
 	}
-	return "", fmt.Errorf("got %s: %s", res.Status, body)
+	return "", fmt.Errorf("[google] got %s: %s", res.Status, body)
 }
 
-// prepareUploadRequest returns an HTTP request to upload item.
 func (u *Client) prepareUploadRequest(fileItem iface.FileItem) (*http.Request, error) {
 	r, size, err := fileItem.Open()
 	if err != nil {
@@ -55,4 +54,16 @@ func (u *Client) prepareUploadRequest(fileItem iface.FileItem) (*http.Request, e
 	req.Header.Set("X-Goog-Upload-Protocol", "raw")
 
 	return req, nil
+}
+
+func humanSize(size int64) string {
+	if size < 1024 {
+		return fmt.Sprintf("%d B", size)
+	} else if size < 1024*1024 {
+		return fmt.Sprintf("%.2f kB", float64(size)/1024)
+	} else if size < 1024*1024*1024 {
+		return fmt.Sprintf("%.2f MB", float64(size)/1024/1024)
+	} else {
+		return fmt.Sprintf("%.2f GB", float64(size)/1024/1024/1024)
+	}
 }
