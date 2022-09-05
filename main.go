@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/chyroc/dropbox-to-google-photos/pkg/app"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -21,7 +22,7 @@ func main() {
 					&cli.BoolFlag{Name: "force", Usage: "force init config"},
 				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp("")
+					ins := app.NewApp("", logrus.InfoLevel)
 					return ins.InitConfig(c.Bool("force"))
 				},
 			},
@@ -32,7 +33,7 @@ func main() {
 					&cli.StringFlag{Name: "config", Usage: "config file path"},
 				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp(c.String("config"))
+					ins := app.NewApp(c.String("config"), logrus.InfoLevel)
 					if err := ins.Start(); err != nil {
 						return err
 					}
@@ -48,7 +49,7 @@ func main() {
 					&cli.StringFlag{Name: "config", Usage: "config file path"},
 				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp(c.String("config"))
+					ins := app.NewApp(c.String("config"), logrus.InfoLevel)
 					if err := ins.Start(); err != nil {
 						return err
 					}

@@ -15,9 +15,9 @@ import (
 var stdout = goansi.NewAnsiStdout()
 var stderr = goansi.NewAnsiStderr()
 
-func NewStdout() iface.Logger {
+func NewStdout(level logrus.Level) iface.Logger {
 	return &stdoutLogger{
-		level:      logrus.DebugLevel,
+		level:      level,
 		fileLogger: GetFileLogger("default"),
 	}
 }

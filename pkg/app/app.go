@@ -1,6 +1,7 @@
 package app
 
 import (
+	stdlog "log"
 	"net/http"
 	"os"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/chyroc/dropbox-to-google-photos/pkg/tokenmanager"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
+	"github.com/sirupsen/logrus"
 )
 
 type App struct {
@@ -27,19 +29,19 @@ type App struct {
 	fileTracker           *filetracker.FileTracker
 }
 
-func NewApp(configName string) *App {
+func NewApp(configName string, level logrus.Level) *App {
 	if configName == "" {
 		configName = "config.json"
 	}
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.NewStdout().Fatal(err)
+		stdlog.Fatalln(err)
 		return nil
 	}
 	workDir := home + "/.dropbox-to-google-photos"
 	return &App{
 		workDir:    workDir,
-		logger:     log.NewStdout(),
+		logger:     log.NewStdout(level),
 		configName: configName,
 	}
 }

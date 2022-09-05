@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
-	"github.com/chyroc/dropbox-to-google-photos/pkg/log"
 )
 
 type Client struct {
@@ -14,14 +13,14 @@ type Client struct {
 	client *http.Client
 }
 
-func New(client *http.Client) (*Client, error) {
+func New(client *http.Client, logger iface.Logger) (*Client, error) {
 	media, err := newPhotosLibraryClient(client)
 	if err != nil {
 		return nil, err
 	}
 	return &Client{
 		media:  media,
-		log:    log.NewStdout(),
+		log:    logger,
 		client: client,
 	}, nil
 }

@@ -38,7 +38,7 @@ func (r *App) TryAuth() error {
 		return err
 	}
 	r.googlePhotoHttpClient = googlePhotoHttpClient
-	r.googlePhotoClient, err = googlephotoclient.New(r.googlePhotoHttpClient)
+	r.googlePhotoClient, err = googlephotoclient.New(r.googlePhotoHttpClient, r.logger)
 
 	return err
 }

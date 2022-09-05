@@ -20,7 +20,7 @@ func (r *sync) loadDropboxImages() error {
 
 	for _, v := range res.Entries {
 		if fi := r.dropboxMetadataToFileItem(v); fi != nil {
-			r.logger.Infof("[dropbox] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
+			r.logger.Debugf("[dropbox] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
 			r.Files <- fi
 		}
 	}

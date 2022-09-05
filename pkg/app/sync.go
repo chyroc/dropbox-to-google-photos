@@ -54,7 +54,7 @@ func (r *App) Sync() error {
 	go func() {
 		for _, v := range entities {
 			if fi := syncer.dropboxMetadataToFileItem(v); fi != nil {
-				r.logger.Infof("[dropbox] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
+				r.logger.Debugf("[dropbox] append file: '%s', hash: '%s'", fi.Name(), fi.(*dropboxFileItem).hash)
 				syncer.Files <- fi
 			}
 		}

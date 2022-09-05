@@ -7,6 +7,8 @@ import (
 )
 
 func (r *sync) uploadFile(item iface.FileItem) UploadResult {
+	r.logger.Infof("[sync] upload file: '%s'", item.Name())
+
 	contentHash := item.(*dropboxFileItem).hash
 	// check if file is already uploaded
 	value := r.fileTracker.Get("dropbox.hash:" + contentHash)
@@ -21,13 +23,13 @@ func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 		if result == UploadResultWait || result == UploadResultReturn {
 			return result
 		}
-		r.logger.Errorf("[google] upload fail: '%s': %s", item.Name(), err)
+		r.logger.Errorf("[sync] upload fail: '%s': %s", item.Name(), err)
 		return result
 	}
 
 	r.fileTracker.Set("dropbox.hash:"+contentHash, contentHash)
 
-	r.logger.Infof("[google] upload success, id: '%s', name: '%s'", media.ID, media.Filename)
+	r.logger.Infof("[sync] upload success: '%s': id: '%s', name: '%s'", item.Name(), media.ID, media.Filename)
 
 	return ""
 }
