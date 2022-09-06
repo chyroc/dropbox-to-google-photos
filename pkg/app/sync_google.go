@@ -48,14 +48,18 @@ func (r *syncer) uploadFile(item iface.FileItem) UploadResult {
 	// 如果 有 err（可能是上传图片产生的，有可能是添加到相册产生的）
 	if err != nil {
 		result := wrapGoogleError(err)
-		if result == UpdateResultSkip {
-			r.setFileSkip(item)
-			return result
+		switch result {
+		case UpdateResultSkip:
+			r.logger.Debugf("[sync] skip this file: '%s', exist", item.Name())
+		case UploadResultWaitAndRetry:
+			r.logger.Debugf("[sync] upload file quote")
+		case UploadResultRetry:
+			r.logger.Debugf("[sync] upload file retry")
+		case UploadResultReactDayLimit:
+			r.logger.Debugf("[sync] upload file react day limit")
+		default:
+			r.logger.Errorf("[sync] upload fail: '%s': %s", item.Name(), err)
 		}
-		if result == UploadResultWait || result == UploadResultReactDayLimit || result == UploadResultRetry {
-			return result
-		}
-		r.logger.Errorf("[sync] upload fail: '%s': %s", item.Name(), err)
 		return result
 	}
 

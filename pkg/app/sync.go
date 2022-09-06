@@ -87,15 +87,19 @@ func (r *App) Sync(ignoreCursor bool) error {
 					return
 				case item := <-syncer.Files:
 					switch syncer.uploadFile(item) {
+					case UpdateResultSkip:
+						syncer.setFileSkip(item)
+						continue
 					case UploadResultReactDayLimit:
 						atomic.AddInt32(&reactLimit, 1)
-						r.logger.Infof("[sync] limit per day, return and stop")
 						return
-					case UploadResultWait:
-						r.logger.Infof("[sync] upload file quote, sleep")
+					case UploadResultRetry:
+						go func() { syncer.Files <- item }()
+					case UploadResultWaitAndRetry:
 						time.Sleep(time.Second * 10)
 						go func() { syncer.Files <- item }()
-					case UploadResultRetry:
+					default:
+						time.Sleep(time.Second * 10)
 						go func() { syncer.Files <- item }()
 					}
 				}
