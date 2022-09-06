@@ -34,5 +34,9 @@ func wrapGoogleError(err error) UploadResult {
 		return UpdateResultSkip
 	}
 
+	if strings.Contains(e, "resuming upload session") {
+		return UploadResultRetry
+	}
+
 	return ""
 }

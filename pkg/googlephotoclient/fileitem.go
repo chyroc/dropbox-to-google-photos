@@ -6,7 +6,7 @@ import (
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 )
 
-func NewFileItem(name string, size int64, data io.Reader) iface.FileItem {
+func NewFileItem(name string, size int64, data io.ReadSeeker) iface.FileItem {
 	return &fileItemImpl{
 		name: name,
 		size: size,
@@ -17,10 +17,10 @@ func NewFileItem(name string, size int64, data io.Reader) iface.FileItem {
 type fileItemImpl struct {
 	name string
 	size int64
-	data io.Reader
+	data io.ReadSeeker
 }
 
-func (r *fileItemImpl) Open() (io.Reader, int64, error) {
+func (r *fileItemImpl) OpenSeeker() (io.ReadSeeker, int64, error) {
 	return r.data, r.size, nil
 }
 

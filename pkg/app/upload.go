@@ -14,6 +14,7 @@ func (r *App) UploadPath(path string) error {
 	if err != nil {
 		return err
 	}
+
 	fs := googlephotoclient.NewFileItem(filepath.Base(path), int64(len(bs)), bytes.NewReader(bs))
 
 	uploadToken, err := r.googlePhotoClient.UploadFile(context.Background(), fs)

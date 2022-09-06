@@ -47,7 +47,7 @@ func (r *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, e
 }
 
 func (r *Client) prepareUploadRequest(fileItem iface.FileItem) (*http.Request, error) {
-	body, size, err := fileItem.Open()
+	body, size, err := fileItem.OpenSeeker()
 	if err != nil {
 		return nil, err
 	}

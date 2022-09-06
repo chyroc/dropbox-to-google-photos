@@ -5,7 +5,7 @@ import (
 )
 
 type FileItem interface {
-	OpenSeeker() (io.ReadSeekCloser, int64, error)
+	OpenSeeker() (io.ReadSeeker, int64, error)
 	Name() string
 	Size() int64
 }

@@ -73,7 +73,7 @@ func (r *dropboxFileItem) Open() (io.Reader, int64, error) {
 	return content, r.size, nil
 }
 
-func (r *dropboxFileItem) OpenSeeker() (io.ReadSeekCloser, int64, error) {
+func (r *dropboxFileItem) OpenSeeker() (io.ReadSeeker, int64, error) {
 	res, err := r.dropboxFiles.GetTemporaryLink(&files.GetTemporaryLinkArg{
 		Path: "rev:" + r.rev,
 	})

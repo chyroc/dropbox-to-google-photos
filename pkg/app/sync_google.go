@@ -52,7 +52,7 @@ func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 			r.setFileSkip(item)
 			return result
 		}
-		if result == UploadResultWait || result == UploadResultReactDayLimit {
+		if result == UploadResultWait || result == UploadResultReactDayLimit || result == UploadResultRetry {
 			return result
 		}
 		r.logger.Errorf("[sync] upload fail: '%s': %s", item.Name(), err)
