@@ -3,6 +3,7 @@ module github.com/chyroc/dropbox-to-google-photos
 go 1.18
 
 require (
+	github.com/cheggaaa/pb v1.0.29
 	github.com/dropbox/dropbox-sdk-go-unofficial/v6 v6.0.4
 	github.com/gphotosuploader/googlemirror v0.5.0
 	github.com/int128/oauth2cli v1.14.0
@@ -24,6 +25,7 @@ require (
 	github.com/int128/listener v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
