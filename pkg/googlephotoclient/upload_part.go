@@ -14,10 +14,12 @@ import (
 
 func (r *Client) uploadPart(ctx context.Context, item iface.FileItem) (string, error) {
 	offset := r.offsetFromPreviousSession(ctx, item)
-	r.log.Debugf("[google] part upload offset for [%s (%s)] is %d", item.Name(), humanSize(item.Size()), offset)
 	if offset == 0 {
+		r.log.Debugf("[google] part upload offset for [%s (%s)] is %d(%s)", item.Name(), humanSize(item.Size()), offset, humanSize(offset))
 		return r.createUploadSession(ctx, item)
 	}
+
+	r.log.Infof("[google] part upload offset for [%s (%s)] is %d(%s)", item.Name(), humanSize(item.Size()), offset, humanSize(offset))
 	return r.resumeUploadSession(ctx, item, offset)
 }
 

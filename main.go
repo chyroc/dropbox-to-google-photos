@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/chyroc/dropbox-to-google-photos/pkg/app"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -20,9 +19,10 @@ func main() {
 				Usage: "init config",
 				Flags: []cli.Flag{
 					&cli.BoolFlag{Name: "force", Usage: "force init config"},
+					&cli.BoolFlag{Name: "verbose", Aliases: []string{"v"}, Usage: "verbose level"},
 				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp("", logrus.InfoLevel)
+					ins := app.NewApp("", c.Bool("verbose"))
 					return ins.InitConfig(c.Bool("force"))
 				},
 			},
@@ -31,9 +31,10 @@ func main() {
 				Usage: "auth to google photos",
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "config", Usage: "config file path"},
+					&cli.BoolFlag{Name: "verbose", Aliases: []string{"v"}, Usage: "verbose level"},
 				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp(c.String("config"), logrus.InfoLevel)
+					ins := app.NewApp(c.String("config"), c.Bool("verbose"))
 					if err := ins.Start(); err != nil {
 						return err
 					}
@@ -48,9 +49,10 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{Name: "config", Usage: "config file path"},
 					&cli.BoolFlag{Name: "ignore-cursor", Usage: "ignore cursor"},
+					&cli.BoolFlag{Name: "verbose", Aliases: []string{"v"}, Usage: "verbose level"},
 				},
 				Action: func(c *cli.Context) error {
-					ins := app.NewApp(c.String("config"), logrus.InfoLevel)
+					ins := app.NewApp(c.String("config"), c.Bool("verbose"))
 					if err := ins.Start(); err != nil {
 						return err
 					}

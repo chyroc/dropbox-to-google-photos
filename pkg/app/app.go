@@ -26,7 +26,7 @@ type App struct {
 	fileTracker       iface.Storer
 }
 
-func NewApp(configName string, level logrus.Level) *App {
+func NewApp(configName string, verbose bool) *App {
 	if configName == "" {
 		configName = "config.json"
 	}
@@ -36,9 +36,14 @@ func NewApp(configName string, level logrus.Level) *App {
 		return nil
 	}
 	workDir := home + "/.dropbox-to-google-photos"
+
+	logLevel := logrus.InfoLevel
+	if verbose {
+		logLevel = logrus.DebugLevel
+	}
 	return &App{
 		workDir:    workDir,
-		logger:     log.NewStdout(level),
+		logger:     log.NewStdout(logLevel),
 		configName: configName,
 	}
 }
