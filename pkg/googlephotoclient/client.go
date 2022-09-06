@@ -33,7 +33,7 @@ func (r Client) UploadFile(ctx context.Context, fileInfo iface.FileItem) (string
 	return r.upload(ctx, fileInfo)
 }
 
-func (r Client) UploadFilePart(ctx context.Context, fileInfo iface.FileItemSeeker) (string, error) {
+func (r Client) UploadFilePart(ctx context.Context, fileInfo iface.FileItem) (string, error) {
 	return r.uploadPart(ctx, fileInfo)
 }
 

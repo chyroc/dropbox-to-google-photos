@@ -27,7 +27,13 @@ func (r *sync) uploadFile(item iface.FileItem) UploadResult {
 
 		// 如果没有，则上传图片，获取 token
 		if uploadToken == "" {
-			uploadToken, err = r.googlePhotoClient.UploadFile(context.Background(), item)
+			// 200M: 1024*1024*200
+			if item.Size() > 1024*1024*200 {
+				r.logger.Debugf("[sync] upload file with part: '%s', size: %s", item.Name(), humanSize(item.Size()))
+				uploadToken, err = r.googlePhotoClient.UploadFilePart(context.Background(), item)
+			} else {
+				uploadToken, err = r.googlePhotoClient.UploadFile(context.Background(), item)
+			}
 			if uploadToken != "" {
 				r.setUploadToken(item, uploadToken)
 			}

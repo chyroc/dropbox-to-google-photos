@@ -12,7 +12,7 @@ import (
 	"google.golang.org/api/googleapi"
 )
 
-func (r *Client) uploadPart(ctx context.Context, item iface.FileItemSeeker) (string, error) {
+func (r *Client) uploadPart(ctx context.Context, item iface.FileItem) (string, error) {
 	offset := r.offsetFromPreviousSession(ctx, item)
 	r.log.Debugf("[google] part upload offset for [%s (%s)] is %d", item.Name(), humanSize(item.Size()), offset)
 	if offset == 0 {
@@ -21,7 +21,7 @@ func (r *Client) uploadPart(ctx context.Context, item iface.FileItemSeeker) (str
 	return r.resumeUploadSession(ctx, item, offset)
 }
 
-func (r *Client) offsetFromPreviousSession(ctx context.Context, item iface.FileItemSeeker) int64 {
+func (r *Client) offsetFromPreviousSession(ctx context.Context, item iface.FileItem) int64 {
 	if r.uploadSessionUrl(item) == "" {
 		return 0
 	}
@@ -39,7 +39,7 @@ func (r *Client) offsetFromPreviousSession(ctx context.Context, item iface.FileI
 	return r.offsetFromResponse(res, item)
 }
 
-func (r *Client) offsetFromResponse(res *http.Response, item iface.FileItemSeeker) int64 {
+func (r *Client) offsetFromResponse(res *http.Response, item iface.FileItem) int64 {
 	if res.Header.Get("X-Goog-Upload-Status") != "active" {
 		// Other known statuses "final" and "cancelled" are both considered as already completed.
 		// Let's restart the upload from scratch.
@@ -55,7 +55,7 @@ func (r *Client) offsetFromResponse(res *http.Response, item iface.FileItemSeeke
 	return 0
 }
 
-func (r *Client) createUploadSession(ctx context.Context, item iface.FileItemSeeker) (string, error) {
+func (r *Client) createUploadSession(ctx context.Context, item iface.FileItem) (string, error) {
 	req, err := r.prepareUploadPartRequest(item)
 	if err != nil {
 		return "", fmt.Errorf("[google] creating upload session: %w", err)
@@ -72,13 +72,13 @@ func (r *Client) createUploadSession(ctx context.Context, item iface.FileItemSee
 	return r.resumeUploadSession(ctx, item, 0)
 }
 
-func (r *Client) storeUploadSession(res *http.Response, item iface.FileItemSeeker) {
+func (r *Client) storeUploadSession(res *http.Response, item iface.FileItem) {
 	if url := res.Header.Get("X-Goog-Upload-URL"); url != "" {
 		r.offsetStore.Set(fingerprint(item), []byte(url))
 	}
 }
 
-func (r *Client) prepareUploadPartRequest(item iface.FileItemSeeker) (*http.Request, error) {
+func (r *Client) prepareUploadPartRequest(item iface.FileItem) (*http.Request, error) {
 	_, size, err := item.OpenSeeker()
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (r *Client) prepareUploadPartRequest(item iface.FileItemSeeker) (*http.Requ
 	return req, nil
 }
 
-func (r *Client) resumeUploadSession(ctx context.Context, item iface.FileItemSeeker, offset int64) (string, error) {
+func (r *Client) resumeUploadSession(ctx context.Context, item iface.FileItem, offset int64) (string, error) {
 	r.log.Debugf("Resuming upload session for [%s] starting at offset %d", item.Name(), offset)
 	req, err := r.prepareResumeUploadRequest(item, offset)
 	if err != nil {
@@ -120,7 +120,7 @@ func (r *Client) resumeUploadSession(ctx context.Context, item iface.FileItemSee
 	return token, nil
 }
 
-func (r *Client) prepareResumeUploadRequest(item iface.FileItemSeeker, offset int64) (*http.Request, error) {
+func (r *Client) prepareResumeUploadRequest(item iface.FileItem, offset int64) (*http.Request, error) {
 	body, size, err := item.OpenSeeker()
 	if err != nil {
 		return nil, fmt.Errorf("preparing resume upload request: %w", err)
@@ -155,11 +155,11 @@ func (r *Client) doRequest(ctx context.Context, req *http.Request) (*http.Respon
 	return res, nil
 }
 
-func (r *Client) uploadSessionUrl(item iface.FileItemSeeker) string {
+func (r *Client) uploadSessionUrl(item iface.FileItem) string {
 	return string(r.offsetStore.Get(fingerprint(item)))
 }
 
-func fingerprint(item iface.FileItemSeeker) string {
+func fingerprint(item iface.FileItem) string {
 	if tmp, ok := item.(iface.FingerPrinter); ok {
 		return tmp.FingerPrint()
 	}
