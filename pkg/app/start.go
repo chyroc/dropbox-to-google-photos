@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/chyroc/dropbox-to-google-photos/pkg/filetracker"
+	"github.com/chyroc/dropbox-to-google-photos/pkg/store"
 	"github.com/chyroc/dropbox-to-google-photos/pkg/tokenmanager"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
@@ -26,7 +26,7 @@ func (r *App) Start() error {
 	}
 	r.dropboxFiles = files.New(r.dropboxConfig)
 
-	r.fileTracker, err = filetracker.NewFileTracker(r.workDir)
+	r.fileTracker, err = store.NewStore(r.workDir + "/tracker.db")
 	if err != nil {
 		return err
 	}
@@ -36,10 +36,10 @@ func (r *App) Start() error {
 
 func (r *App) Close() error {
 	if r.tokenManager != nil {
-		r.tokenManager.Close()
+		_ = r.tokenManager.Close()
 	}
 	if r.fileTracker != nil {
-		r.fileTracker.Close()
+		_ = r.fileTracker.Close()
 	}
 	return nil
 }

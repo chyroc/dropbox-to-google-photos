@@ -1,10 +1,10 @@
-// Package filetracker provides implementation of LevelDB key/value database.
+// Package store provides implementation of LevelDB key/value database.
 //
 // Create or open a database:
 //
 //	// The returned DB instance is safe for concurrent use. Which mean that all
 //	// DB's methods may be called concurrently from multiple goroutine.
-//	db, err := filetracker.NewStore("path/to/db")
+//	db, err := store.NewStore("path/to/db")
 //	...
 //	defer db.Close()
 //	...
@@ -18,9 +18,10 @@
 //	...
 //	db.Delete(key)
 //	...
-package filetracker
+package store
 
 import (
+	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -29,7 +30,7 @@ type LevelDBStore struct {
 }
 
 // NewStore create a new Store implemented by LevelDB
-func NewStore(path string) (*LevelDBStore, error) {
+func NewStore(path string) (iface.Storer, error) {
 	db, err := leveldb.OpenFile(path, nil)
 	if err != nil {
 		return nil, err

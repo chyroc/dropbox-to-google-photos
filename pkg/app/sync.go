@@ -5,7 +5,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/chyroc/dropbox-to-google-photos/pkg/filetracker"
 	"github.com/chyroc/dropbox-to-google-photos/pkg/googlephotoclient"
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
@@ -14,7 +13,7 @@ import (
 type sync struct {
 	dropboxFiles      files.Client
 	googlePhotoClient *googlephotoclient.Client
-	fileTracker       *filetracker.FileTracker
+	fileTracker       iface.Storer
 	logger            iface.Logger
 
 	Files   chan iface.FileItem

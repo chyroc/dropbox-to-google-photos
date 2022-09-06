@@ -15,7 +15,7 @@ type Client struct {
 	googleAPI   string
 }
 
-func New(client *http.Client, store iface.Storer, logger iface.Logger) (*Client, error) {
+func New(client *http.Client, offsetStore iface.Storer, logger iface.Logger) (*Client, error) {
 	media, err := newPhotosLibraryClient(client)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func New(client *http.Client, store iface.Storer, logger iface.Logger) (*Client,
 		media:       media,
 		log:         logger,
 		client:      client,
-		offsetStore: store,
+		offsetStore: offsetStore,
 		googleAPI:   "https://photoslibrary.googleapis.com/v1/uploads",
 	}, nil
 }

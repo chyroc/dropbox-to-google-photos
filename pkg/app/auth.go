@@ -5,6 +5,7 @@ import (
 
 	"github.com/chyroc/dropbox-to-google-photos/pkg/googlephotoclient"
 	"github.com/chyroc/dropbox-to-google-photos/pkg/oauth"
+	"github.com/chyroc/dropbox-to-google-photos/pkg/store"
 	"golang.org/x/oauth2"
 )
 
@@ -37,8 +38,10 @@ func (r *App) TryAuth() error {
 	if err != nil {
 		return err
 	}
-	r.googlePhotoHttpClient = googlePhotoHttpClient
-	r.googlePhotoClient, err = googlephotoclient.New(r.googlePhotoHttpClient, r.logger)
+
+	r.googlePhotoClient, err = googlephotoclient.New(googlePhotoHttpClient,
+		store.WrapPrefixStore("google.reuseupload.offseturl", r.fileTracker),
+		r.logger)
 
 	return err
 }

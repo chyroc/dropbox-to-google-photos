@@ -2,10 +2,8 @@ package app
 
 import (
 	stdlog "log"
-	"net/http"
 	"os"
 
-	"github.com/chyroc/dropbox-to-google-photos/pkg/filetracker"
 	"github.com/chyroc/dropbox-to-google-photos/pkg/googlephotoclient"
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 	"github.com/chyroc/dropbox-to-google-photos/pkg/log"
@@ -21,12 +19,11 @@ type App struct {
 	logger     iface.Logger
 	configName string
 
-	tokenManager          *tokenmanager.TokenManager
-	googlePhotoHttpClient *http.Client
-	googlePhotoClient     *googlephotoclient.Client
-	dropboxConfig         dropbox.Config
-	dropboxFiles          files.Client
-	fileTracker           *filetracker.FileTracker
+	tokenManager      *tokenmanager.TokenManager
+	googlePhotoClient *googlephotoclient.Client
+	dropboxConfig     dropbox.Config
+	dropboxFiles      files.Client
+	fileTracker       iface.Storer
 }
 
 func NewApp(configName string, level logrus.Level) *App {
