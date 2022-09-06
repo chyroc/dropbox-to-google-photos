@@ -8,7 +8,7 @@ import (
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 )
 
-func (r *sync) uploadFile(item iface.FileItem) UploadResult {
+func (r *syncer) uploadFile(item iface.FileItem) UploadResult {
 	var err error
 
 	// check if file is already uploaded

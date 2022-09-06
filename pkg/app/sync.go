@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
 )
 
-type sync struct {
+type syncer struct {
 	dropboxFiles      files.Client
 	googlePhotoClient *googlephotoclient.Client
 	fileTracker       iface.Storer
@@ -24,7 +25,7 @@ type sync struct {
 func (r *App) Sync(ignoreCursor bool) error {
 	r.logger.Infof("[sync] start sync, path: '%s'", r.config.Dropbox.RootDir)
 
-	syncer := &sync{
+	syncer := &syncer{
 		dropboxFiles:      r.dropboxFiles,
 		googlePhotoClient: r.googlePhotoClient,
 		fileTracker:       r.fileTracker,
@@ -67,60 +68,47 @@ func (r *App) Sync(ignoreCursor bool) error {
 		}
 	}()
 
-	worker := int32(r.config.Worker)
+	r.logger.Infof("[sync] wait for channel")
+	time.Sleep(time.Second * 3)
+
 	reactLimit := int32(0)
-	go func() {
-		for i := 0; i < r.config.Worker; i++ {
-			go func() {
-				defer func() {
-					atomic.AddInt32(&worker, -1)
-				}()
-				for {
-					select {
-					case item, ok := <-syncer.Files:
-						if !ok {
-							return
-						}
-						switch syncer.uploadFile(item) {
-						case UploadResultReactDayLimit:
-							atomic.AddInt32(&reactLimit, 1)
-							r.logger.Infof("[sync] limit per day, return and stop")
-							return
-						case UploadResultWait:
-							r.logger.Infof("[sync] upload file quote, sleep")
-							time.Sleep(time.Second * 10)
-							go func() { syncer.Files <- item }()
-						case UploadResultRetry:
-							go func() { syncer.Files <- item }()
-						}
+	wait := new(sync.WaitGroup)
+	for i := 0; i < r.config.Worker; i++ {
+		wait.Add(1)
+		go func() {
+			defer func() { wait.Done() }()
+			for {
+				select {
+				default:
+					if syncer.HasMore {
+						time.Sleep(time.Second * 3)
+						continue
+					}
+					return
+				case item := <-syncer.Files:
+					switch syncer.uploadFile(item) {
+					case UploadResultReactDayLimit:
+						atomic.AddInt32(&reactLimit, 1)
+						r.logger.Infof("[sync] limit per day, return and stop")
+						return
+					case UploadResultWait:
+						r.logger.Infof("[sync] upload file quote, sleep")
+						time.Sleep(time.Second * 10)
+						go func() { syncer.Files <- item }()
+					case UploadResultRetry:
+						go func() { syncer.Files <- item }()
 					}
 				}
-			}()
-		}
-	}()
-
-	x := time.NewTicker(time.Second)
-	time.Sleep(time.Second * 5)
-	for {
-		if atomic.LoadInt32(&worker) == 0 {
-			if atomic.LoadInt32(&reactLimit) > 0 {
-				r.logger.Infof("[sync] react limit, stop")
-			} else {
-				r.logger.Infof("[sync] done")
 			}
-			break
-		}
-		select {
-		case <-x.C:
-			if !syncer.HasMore {
-				if atomic.LoadInt32(&reactLimit) > 0 {
-					r.logger.Infof("[sync] react limit, stop")
-				} else {
-					r.logger.Infof("[sync] done")
-				}
-				return nil
-			}
-		}
+		}()
 	}
+	wait.Wait()
+
+	if atomic.LoadInt32(&reactLimit) > 0 {
+		r.logger.Infof("[sync] react limit, stop")
+	} else {
+		r.logger.Infof("[sync] done")
+	}
+
 	return nil
 }

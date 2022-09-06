@@ -12,7 +12,7 @@ import (
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
 )
 
-func (r *sync) loadDropboxImages() error {
+func (r *syncer) loadDropboxImages() error {
 	res, err := r.dropboxFiles.ListFolderContinue(&files.ListFolderContinueArg{
 		Cursor: r.Cursor,
 	})
@@ -30,7 +30,7 @@ func (r *sync) loadDropboxImages() error {
 	return nil
 }
 
-func (r *sync) dropboxMetadataToFileItem(fi files.IsMetadata) iface.FileItem {
+func (r *syncer) dropboxMetadataToFileItem(fi files.IsMetadata) iface.FileItem {
 	switch fi := fi.(type) {
 	case *files.FileMetadata:
 		if isShouldSync(fi.Name) {
