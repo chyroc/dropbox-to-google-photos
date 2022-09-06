@@ -95,12 +95,11 @@ func (r *App) Sync(ignoreCursor bool) error {
 						return
 					case UploadResultRetry:
 						go func() { syncer.Files <- item }()
-					case UploadResultWaitAndRetry:
+					case UploadResultWaitAndRetry, UpdateResultError:
 						time.Sleep(time.Second * 10)
 						go func() { syncer.Files <- item }()
 					default:
-						time.Sleep(time.Second * 10)
-						go func() { syncer.Files <- item }()
+						// do nothing
 					}
 				}
 			}

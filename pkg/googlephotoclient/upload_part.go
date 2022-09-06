@@ -15,11 +15,11 @@ import (
 func (r *Client) uploadPart(ctx context.Context, item iface.FileItem) (string, error) {
 	offset := r.offsetFromPreviousSession(ctx, item)
 	if offset == 0 {
-		r.log.Debugf("[google] part upload offset for [%s (%s)] is %d(%s)", item.Name(), humanSize(item.Size()), offset, humanSize(offset))
+		r.log.Debugf("[google] part upload offset for [%s (%s / %s)]", item.Name(), humanSize(offset), humanSize(item.Size()))
 		return r.createUploadSession(ctx, item)
 	}
 
-	r.log.Infof("[google] part upload offset for [%s (%s)] is %d(%s)", item.Name(), humanSize(item.Size()), offset, humanSize(offset))
+	r.log.Infof("[google] part upload offset for [%s (%s / %s)]", item.Name(), humanSize(offset), humanSize(item.Size()))
 	return r.resumeUploadSession(ctx, item, offset)
 }
 

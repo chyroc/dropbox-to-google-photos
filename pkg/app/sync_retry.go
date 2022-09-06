@@ -11,6 +11,7 @@ const (
 	UploadResultWaitAndRetry  = UploadResult("wait_and_retry")
 	UploadResultReactDayLimit = UploadResult("react_day_limit")
 	UpdateResultSkip          = UploadResult("skip")
+	UpdateResultError         = UploadResult("error")
 )
 
 func wrapGoogleError(err error) UploadResult {
@@ -39,5 +40,5 @@ func wrapGoogleError(err error) UploadResult {
 		return UploadResultRetry
 	}
 
-	return ""
+	return UpdateResultError
 }

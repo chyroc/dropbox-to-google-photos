@@ -57,8 +57,10 @@ func (r *syncer) uploadFile(item iface.FileItem) UploadResult {
 			r.logger.Debugf("[sync] upload file retry")
 		case UploadResultReactDayLimit:
 			r.logger.Debugf("[sync] upload file react day limit")
-		default:
+		case UpdateResultError:
 			r.logger.Errorf("[sync] upload fail: '%s': %s", item.Name(), err)
+		default:
+			// do nothing
 		}
 		return result
 	}
