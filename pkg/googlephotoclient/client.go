@@ -8,31 +8,38 @@ import (
 )
 
 type Client struct {
-	media  *photosLibraryMediaItemsRepository
-	log    iface.Logger
-	client *http.Client
+	media       *photosLibraryMediaItemsRepository
+	log         iface.Logger
+	client      *http.Client
+	offsetStore iface.Storer
+	googleAPI   string
 }
 
-func New(client *http.Client, logger iface.Logger) (*Client, error) {
+func New(client *http.Client, store iface.Storer, logger iface.Logger) (*Client, error) {
 	media, err := newPhotosLibraryClient(client)
 	if err != nil {
 		return nil, err
 	}
 	return &Client{
-		media:  media,
-		log:    logger,
-		client: client,
+		media:       media,
+		log:         logger,
+		client:      client,
+		offsetStore: store,
+		googleAPI:   "https://photoslibrary.googleapis.com/v1/uploads",
 	}, nil
 }
 
-// UploadFileToLibrary uploads the specified file to Google Photos.
-func (c Client) UploadFile(ctx context.Context, fileInfo iface.FileItem) (string, error) {
-	return c.upload(ctx, fileInfo)
+func (r Client) UploadFile(ctx context.Context, fileInfo iface.FileItem) (string, error) {
+	return r.upload(ctx, fileInfo)
+}
+
+func (r Client) UploadFilePart(ctx context.Context, fileInfo iface.FileItemSeeker) (string, error) {
+	return r.uploadPart(ctx, fileInfo)
 }
 
 // UploadFileToLibrary uploads the specified file to Google Photos.
-func (c Client) UploadFileToLibrary(ctx context.Context, token string) (MediaItem, error) {
-	result, err := c.media.CreateMany(ctx, []string{token})
+func (r Client) UploadFileToLibrary(ctx context.Context, token string) (MediaItem, error) {
+	result, err := r.media.CreateMany(ctx, []string{token})
 	if err != nil {
 		return MediaItem{}, err
 	}

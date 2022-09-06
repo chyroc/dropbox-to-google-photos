@@ -10,25 +10,25 @@ import (
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 )
 
-func (u *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, error) {
-	req, err := u.prepareUploadRequest(fileItem)
+func (r *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, error) {
+	req, err := r.prepareUploadRequest(fileItem)
 	if err != nil {
 		return "", err
 	}
 
 	filekey := fmt.Sprintf("%s (%s)", fileItem.Name(), humanSize(fileItem.Size()))
 
-	u.log.Debugf("[google] uploading %s, start", filekey)
-	res, err := u.client.Do(req)
+	r.log.Debugf("[google] uploading %s, start", filekey)
+	res, err := r.client.Do(req)
 	if err != nil {
-		u.log.Errorf("[google] uploading %s, do request fail: %s", filekey, err)
+		r.log.Errorf("[google] uploading %s, do request fail: %s", filekey, err)
 		return "", err
 	}
 	defer res.Body.Close()
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		u.log.Errorf("[google] uploading %s, read body fail: %s(%s)", filekey, err, res.Status)
+		r.log.Errorf("[google] uploading %s, read body fail: %s(%s)", filekey, err, res.Status)
 		return "", err
 	}
 	body := string(b)
@@ -40,21 +40,19 @@ func (u *Client) upload(ctx context.Context, fileItem iface.FileItem) (string, e
 	_ = json.Unmarshal(b, codeResp)
 	if codeResp.Code != 0 {
 		err = fmt.Errorf("[google] uploading %s, %d %s", filekey, codeResp.Code, codeResp.Message)
-		u.log.Errorf(err.Error())
+		r.log.Errorf(err.Error())
 		return "", err
 	}
 	return "", fmt.Errorf("[google] uploading %s, fail, got %s: %s", filekey, res.Status, body)
 }
 
-func (u *Client) prepareUploadRequest(fileItem iface.FileItem) (*http.Request, error) {
-	r, size, err := fileItem.Open()
+func (r *Client) prepareUploadRequest(fileItem iface.FileItem) (*http.Request, error) {
+	body, size, err := fileItem.Open()
 	if err != nil {
 		return nil, err
 	}
 
-	url := "https://photoslibrary.googleapis.com/v1/uploads"
-
-	req, err := http.NewRequest("POST", url, r)
+	req, err := http.NewRequest("POST", r.googleAPI, body)
 	if err != nil {
 		return nil, err
 	}

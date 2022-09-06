@@ -3,8 +3,10 @@ package app
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/chyroc/dropbox-to-google-photos/pkg/iface"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/v6/dropbox/files"
@@ -71,12 +73,71 @@ func (r *dropboxFileItem) Open() (io.Reader, int64, error) {
 	return content, r.size, nil
 }
 
+func (r *dropboxFileItem) OpenSeeker() (io.ReadSeekCloser, int64, error) {
+	res, err := r.dropboxFiles.GetTemporaryLink(&files.GetTemporaryLinkArg{
+		Path: "rev:" + r.rev,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	return &dropboxFileItemSeeker{link: res.Link, size: int64(res.Metadata.Size)}, r.size, nil
+}
+
 func (r *dropboxFileItem) Name() string {
 	return r.name
 }
 
 func (r *dropboxFileItem) Size() int64 {
 	return r.size
+}
+
+func (r *dropboxFileItem) FingerPrint() string {
+	return r.hash
+}
+
+type dropboxFileItemSeeker struct {
+	link   string
+	size   int64
+	offset int64
+	reader io.ReadCloser
+}
+
+func (r *dropboxFileItemSeeker) Read(p []byte) (n int, err error) {
+	if r.reader == nil {
+		req, err := http.NewRequest(http.MethodGet, r.link, nil)
+		if err != nil {
+			return 0, err
+		}
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", r.offset))
+		resp, err := downloadHTTPClient.Do(req)
+		if err != nil {
+			return 0, err
+		}
+		r.reader = resp.Body
+	}
+
+	return r.reader.Read(p)
+}
+
+var downloadHTTPClient = &http.Client{
+	Timeout: time.Minute * 60,
+}
+
+func (r *dropboxFileItemSeeker) Seek(offset int64, whence int) (int64, error) {
+	switch whence {
+	case io.SeekStart:
+		r.offset = offset
+		return r.offset, nil
+	default:
+		return 0, fmt.Errorf("not support whence: %d", whence)
+	}
+}
+
+func (r *dropboxFileItemSeeker) Close() error {
+	if r.reader == nil {
+		return nil
+	}
+	return r.reader.Close()
 }
 
 func dropboxNameToGooglePhoto(name string) string {
